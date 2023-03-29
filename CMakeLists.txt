@@ -16,21 +16,18 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
 else()
     set(PNTR_PHYSFS_IS_MAIN FALSE)
 endif()
-option(PNTR_PHYSFS_BUILD_EXAMPLES "Examples" ${PNTR_PHYSFS_IS_MAIN})
+option(PNTR_PHYSFS_BUILD_TESTS "Examples" ${PNTR_PHYSFS_IS_MAIN})
 
-# Examples
-if (PNTR_PHYSFS_BUILD_EXAMPLES)
-    add_subdirectory(examples)
-
-    # Testing
+# Testing
+if (PNTR_PHYSFS_BUILD_TESTS)
     include(CTest)
     enable_testing()
     if (BUILD_TESTING)
-        # set(CTEST_CUSTOM_TESTS_IGNORE
-        #     pkg-config--static
-        # )
+        set(CTEST_CUSTOM_TESTS_IGNORE
+            pkg-config--static
+        )
         # Always print verbose output when tests fail if run using `make test`.
-        #list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
-        #add_subdirectory(test)
+        list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
+        add_subdirectory(test)
     endif()
 endif()

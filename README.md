@@ -23,7 +23,7 @@ After being included, pntr will load and save files via PhysFS.
 pntr_image* image = pntr_load_image("res/hello.png");
 
 // Save an image to PhysFS's write directory.
-pntr_save_image("output.png");
+pntr_save_image(image, "output.png");
 ```
 
 ## License
