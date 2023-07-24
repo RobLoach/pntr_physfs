@@ -10,7 +10,7 @@ Include [`pntr-physfs.h`](pntr-physfs.h) before including `pntr.h`. This will de
 #include "physfs.h"
 
 #define PNTR_PHYSFS_IMPLEMENTATION
-#include "pntr-physfs.h"
+#include "pntr_physfs.h"
 
 #define PNTR_IMPLEMENTATION
 #include "pntr.h"
