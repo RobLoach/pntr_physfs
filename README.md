@@ -1,10 +1,10 @@
-# pntr-physfs
+# pntr_physfs
 
 [PhysicsFS](https://github.com/icculus/physfs) support for [pntr](https://github.com/RobLoach/pntr) to load and save images with PhysFS.
 
 ## Usage
 
-Include [`pntr-physfs.h`](pntr-physfs.h) before including `pntr.h`. This will define `PNTR_LOAD_FILE` and `PNTR_SAVE_FILE` to have pntr load/save files with PhysicsFS.
+Include [`pntr_physfs.h`](pntr_physfs.h) before including `pntr.h`. This will define `PNTR_LOAD_FILE` and `PNTR_SAVE_FILE` to have pntr load/save files with PhysicsFS.
 
 ``` c
 #include "physfs.h"
