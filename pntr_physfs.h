@@ -1,6 +1,6 @@
 /**********************************************************************************************
 *
-*   pntr-physfs - Integrate PhysFS with pntr.
+*   pntr_physfs - Integrate PhysFS virtual file system with pntr.
 *
 *   Copyright 2023 Rob Loach (@RobLoach)
 *
@@ -10,7 +10,7 @@
 *
 *   LICENSE: zlib/libpng
 *
-*   pntr-physfs is licensed under an unmodified zlib/libpng license, which is an OSI-certified,
+*   pntr_physfs is licensed under an unmodified zlib/libpng license, which is an OSI-certified,
 *   BSD-like license that allows static linking with closed source software:
 *
 *   This software is provided "as-is", without any express or implied warranty. In no event
@@ -41,6 +41,14 @@ extern "C" {
 
 #ifndef PNTR_PHYSFS_API
     #define PNTR_PHYSFS_API
+#endif
+
+#ifndef PNTR_LOAD_FILE
+    #define PNTR_LOAD_FILE pntr_physfs_load_file
+#endif
+
+#ifndef PNTR_SAVE_FILE
+    #define PNTR_SAVE_FILE pntr_physfs_save_file
 #endif
 
 /**
@@ -88,24 +96,10 @@ extern "C" {
     #define PNTR_SAVE_FILE pntr_physfs_save_file
 #endif
 
-#ifndef PNTR_MALLOC
-    #include <stdlib.h>
-    /**
-     * Allocates the requested memory and returns a pointer to it.
-     */
-    #define PNTR_MALLOC(size) malloc((size_t)(size))
-#endif  // PNTR_MALLOC
-
-#ifndef PNTR_FREE
-    #include <stdlib.h>
-    /**
-     * Deallocates the previously allocated memory.
-     */
-    #define PNTR_FREE(obj) free((void*)(obj))
-#endif  // PNTR_FREE
-
-// pntr's error reporting.
-void* pntr_set_error(const char* error);
+#ifndef PNTR_PHYSFS_PNTR_H
+#define PNTR_PHYSFS_PNTR_H "pntr.h"
+#endif
+#include PNTR_PHYSFS_PNTR_H
 
 PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsigned int *bytesRead) {
     // Open up the file.
@@ -119,7 +113,7 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
     }
 
     // Check to see how large the file is.
-    int size = PHYSFS_fileLength(handle);
+    PHYSFS_sint64 size = PHYSFS_fileLength(handle);
     if (size == -1) {
         pntr_set_error("PHYSFS: Could not determine file size");
         if (bytesRead != NULL) {
@@ -139,13 +133,13 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
     }
 
     // Read the file, return if it's empty.
-    void* buffer = PNTR_MALLOC(size);
-    int read = PHYSFS_readBytes(handle, buffer, size);
+    void* buffer = pntr_load_memory((size_t)size);
+    int read = PHYSFS_readBytes(handle, buffer, (PHYSFS_uint64)size);
     if (read < 0) {
         if (bytesRead != NULL) {
             *bytesRead = 0;
         }
-        PNTR_FREE(buffer);
+        pntr_unload_memory(buffer);
         PHYSFS_close(handle);
         return 0;
     }
@@ -155,6 +149,7 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
     if (bytesRead != NULL) {
         *bytesRead = read;
     }
+
     return (unsigned char*) buffer;
 }
 
@@ -180,6 +175,7 @@ PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *dat
     }
 
     PHYSFS_close(handle);
+
     return true;
 }
 

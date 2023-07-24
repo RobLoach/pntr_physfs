@@ -8,13 +8,14 @@ find_package(PhysFS)
 # Resources
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/resources/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources/)
 
-# pntr-physfs-test
-add_executable(pntr-physfs-test pntr-physfs-test.c)
-target_link_libraries(pntr-physfs-test PUBLIC
+# pntr_physfs_test
+add_executable(pntr_physfs_test pntr_physfs_test.c)
+target_link_libraries(pntr_physfs_test PUBLIC
     pntr
-    pntr-physfs
+    pntr_physfs
     physfs-static
 )
+set_property(TARGET pntr_physfs_test PROPERTY C_STANDARD 99)
 
 # Set up the test
-add_test(NAME pntr-physfs-test COMMAND pntr-physfs-test)
+add_test(NAME pntr_physfs_test COMMAND pntr_physfs_test)
