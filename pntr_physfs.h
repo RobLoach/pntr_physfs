@@ -133,7 +133,7 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
     }
 
     // Read the file, return if it's empty.
-    void* buffer = pntr_load_memory((size_t)size);
+    void* buffer = pntr_load_memory((size_t)(size + 1));
     int read = PHYSFS_readBytes(handle, buffer, (PHYSFS_uint64)size);
     if (read < 0) {
         if (bytesRead != NULL) {
