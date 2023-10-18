@@ -14,16 +14,18 @@ Include [`pntr_physfs.h`](pntr_physfs.h) before including `pntr.h`. This will de
 
 #define PNTR_IMPLEMENTATION
 #include "pntr.h"
-```
 
-After being included, pntr will load and save files via PhysFS.
+int main() {
+    // Initialize PhysFS
+    PHYSFS_init(0);
+    PHYSFS_mount("resources.zip", "res", 1);
 
-``` c
-// Load an image from the res mount point in PhysFS
-pntr_image* image = pntr_load_image("res/hello.png");
+    // Load an image from the resources.zip file.
+    pntr_image* image = pntr_load_image("res/hello.png");
 
-// Save an image to PhysFS's write directory.
-pntr_save_image(image, "output.png");
+    // Deinitialize PhysFS
+    PHYSFS_deinit();
+}
 ```
 
 ## License
