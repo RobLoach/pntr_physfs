@@ -96,16 +96,18 @@ extern "C" {
     #define PNTR_SAVE_FILE pntr_physfs_save_file
 #endif
 
-#ifndef PNTR_PHYSFS_PNTR_H
-#define PNTR_PHYSFS_PNTR_H "pntr.h"
+#ifndef PNTR_PHYSFS_PHYSFS_H
+#define PNTR_PHYSFS_PHYSFS_H "physfs.h"
 #endif
-#include PNTR_PHYSFS_PNTR_H
+#include PNTR_PHYSFS_PHYSFS_H
+
+PNTR_PHYSFS_API void pntr_unload_memory(void* pointer);
+PNTR_PHYSFS_API inline void* pntr_load_memory(size_t size);
 
 PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsigned int *bytesRead) {
     // Open up the file.
     PHYSFS_File* handle = PHYSFS_openRead(fileName);
     if (handle == 0) {
-        pntr_set_error(PNTR_ERROR_FAILED_TO_OPEN);
         if (bytesRead != NULL) {
             *bytesRead = 0;
         }
@@ -115,7 +117,6 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
     // Check to see how large the file is.
     PHYSFS_sint64 size = PHYSFS_fileLength(handle);
     if (size == -1) {
-        pntr_set_error(PNTR_ERROR_FAILED_TO_OPEN);
         if (bytesRead != NULL) {
             *bytesRead = 0;
         }
@@ -156,20 +157,17 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
 PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *data, unsigned int bytesToWrite) {
     // Protect against empty writes.
     if (bytesToWrite == 0 || data == NULL) {
-        pntr_set_error(PNTR_ERROR_FAILED_TO_WRITE);
         return false;
     }
 
     // Open the file.
     PHYSFS_File* handle = PHYSFS_openWrite(fileName);
     if (handle == 0) {
-        pntr_set_error(PNTR_ERROR_FAILED_TO_WRITE);
         return false;
     }
 
     // Write the data to the file handle.
     if (PHYSFS_writeBytes(handle, data, bytesToWrite) < 0) {
-        pntr_set_error(PNTR_ERROR_FAILED_TO_WRITE);
         PHYSFS_close(handle);
         return false;
     }
