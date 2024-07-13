@@ -6,7 +6,6 @@
 #define PNTR_PHYSFS_IMPLEMENTATION
 #include "../pntr_physfs.h"
 
-#define PNTR_DISABLE_MATH
 #define PNTR_IMPLEMENTATION
 #include "pntr.h"
 
