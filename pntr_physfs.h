@@ -35,10 +35,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef PNTR_PHYSFS_API
     #define PNTR_PHYSFS_API
 #endif
@@ -49,6 +45,10 @@ extern "C" {
 
 #ifndef PNTR_SAVE_FILE
     #define PNTR_SAVE_FILE pntr_physfs_save_file
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /**
@@ -84,10 +84,6 @@ PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *dat
 #ifndef PNTR_PHYSFS_IMPLEMENTATION_ONCE
 #define PNTR_PHYSFS_IMPLEMENTATION_ONCE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef PNTR_LOAD_FILE
     #define PNTR_LOAD_FILE pntr_physfs_load_file
 #endif
@@ -103,6 +99,10 @@ extern "C" {
 
 PNTR_PHYSFS_API void pntr_unload_memory(void* pointer);
 PNTR_PHYSFS_API void* pntr_load_memory(size_t size);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsigned int *bytesRead) {
     // Open up the file.
