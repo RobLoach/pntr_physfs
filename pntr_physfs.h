@@ -36,7 +36,11 @@
 #include <stdbool.h>
 
 #ifndef PNTR_PHYSFS_API
-    #define PNTR_PHYSFS_API
+    #ifdef PNTR_API
+        #define PNTR_PHYSFS_API PNTR_API
+    #else
+        #define PNTR_PHYSFS_API
+    #endif
 #endif
 
 #ifndef PNTR_LOAD_FILE
@@ -97,12 +101,12 @@ PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *dat
 #endif
 #include PNTR_PHYSFS_PHYSFS_H
 
-PNTR_PHYSFS_API void pntr_unload_memory(void* pointer);
-PNTR_PHYSFS_API void* pntr_load_memory(size_t size);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+PNTR_PHYSFS_API void pntr_unload_memory(void* pointer);
+PNTR_PHYSFS_API void* pntr_load_memory(size_t size);
 
 PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsigned int *bytesRead) {
     // Open up the file.
