@@ -33,7 +33,7 @@
 #ifndef PNTR_PHYSFS_H_
 #define PNTR_PHYSFS_H_
 
-#include <stdbool.h>
+#include <stdbool.h> // bool
 
 #ifndef PNTR_PHYSFS_API
     #ifdef PNTR_API
