@@ -32,7 +32,7 @@ int main() {
 
 Unless stated otherwise, all works are:
 
-- Copyright (c) 2023 [Rob Loach](https://robloach.net)
+- Copyright (c) 2026 [Rob Loach](https://robloach.net)
 
 ... and licensed under:
 
