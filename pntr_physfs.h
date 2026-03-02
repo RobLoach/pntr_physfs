@@ -111,11 +111,11 @@ PNTR_PHYSFS_API void* pntr_load_memory(size_t size);
 PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsigned int *bytesRead) {
     // Open up the file.
     PHYSFS_File* handle = PHYSFS_openRead(fileName);
-    if (handle == 0) {
+    if (handle == NULL) {
         if (bytesRead != NULL) {
             *bytesRead = 0;
         }
-        return 0;
+        return NULL;
     }
 
     // Check to see how large the file is.
@@ -125,7 +125,7 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
             *bytesRead = 0;
         }
         PHYSFS_close(handle);
-        return 0;
+        return NULL;
     }
 
     // Close safely when it's empty.
@@ -134,25 +134,33 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
             *bytesRead = 0;
         }
         PHYSFS_close(handle);
-        return 0;
+        return NULL;
     }
 
-    // Read the file, return if it's empty.
+    // Read the file data into a buffer.
     void* buffer = pntr_load_memory((size_t)(size + 1));
-    int read = PHYSFS_readBytes(handle, buffer, (PHYSFS_uint64)size);
+    if (buffer == NULL) {
+        if (bytesRead != NULL) {
+            *bytesRead = 0;
+        }
+        PHYSFS_close(handle);
+        return NULL;
+    }
+
+    PHYSFS_sint64 read = PHYSFS_readBytes(handle, buffer, (PHYSFS_uint64)size);
     if (read < 0) {
         if (bytesRead != NULL) {
             *bytesRead = 0;
         }
         pntr_unload_memory(buffer);
         PHYSFS_close(handle);
-        return 0;
+        return NULL;
     }
 
     // Close the file handle, and return the bytes read and the buffer.
     PHYSFS_close(handle);
     if (bytesRead != NULL) {
-        *bytesRead = read;
+        *bytesRead = (unsigned int)read;
     }
 
     return (unsigned char*) buffer;
@@ -166,7 +174,7 @@ PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *dat
 
     // Open the file.
     PHYSFS_File* handle = PHYSFS_openWrite(fileName);
-    if (handle == 0) {
+    if (handle == NULL) {
         return false;
     }
 
