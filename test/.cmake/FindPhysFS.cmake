@@ -24,7 +24,7 @@ include(FetchContent)
 FetchContent_Declare(
     physfs
     GIT_REPOSITORY https://github.com/icculus/physfs.git
-    GIT_TAG ccffd00
+    GIT_TAG c30aa9086d4caf7548ee76655376aa7aa9098ffc
 )
 FetchContent_MakeAvailable(physfs)
 include_directories(${physfs_SOURCE_DIR}/src)
