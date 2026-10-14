@@ -155,6 +155,15 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
         return NULL;
     }
 
+    // The size is reported back through an unsigned int, so a file too large to count in
+    // one can't be loaded without silently wrapping its size. pntr_load_file() rejects
+    // the same file, so both loaders agree on what is too large to load.
+    if ((PHYSFS_sint64)(unsigned int)size != size) {
+        PHYSFS_close(handle);
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_NOT_SUPPORTED);
+        return NULL;
+    }
+
     // An empty file loads successfully, the same way pntr_load_file() does, leaving
     // pntr_load_image() to report that no data can never be an image. PNTR_MALLOC(0) is
     // implementation-defined and is allowed to return NULL, so ask for at least one byte
@@ -199,14 +208,19 @@ PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *dat
         return false;
     }
 
-    // Write the data to the file handle.
-    if (PHYSFS_writeBytes(handle, data, bytesToWrite) < 0) {
-        PHYSFS_close(handle);
+    // Write the data to the file handle. A write that stopped part way through, like one
+    // that ran out of space or hit a quota, leaves a truncated file behind, so a short
+    // write is a failure rather than a success.
+    PHYSFS_sint64 written = PHYSFS_writeBytes(handle, data, bytesToWrite);
+
+    // PhysicsFS buffers its writes, so a failure to flush them only surfaces when the
+    // handle is closed. Ignoring that would report lost data as a successful save.
+    int closed = PHYSFS_close(handle);
+
+    if (written != (PHYSFS_sint64)bytesToWrite || closed == 0) {
         PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_WRITE);
         return false;
     }
-
-    PHYSFS_close(handle);
 
     return true;
 }

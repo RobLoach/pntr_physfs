@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <assert.h>
 
+#if defined(__linux__)
+    // Used to induce a genuine short write below.
+    #include <string.h> // memset
+    #include <signal.h> // signal, SIGXFSZ, SIG_IGN, SIG_DFL, SIG_ERR
+    #include <sys/resource.h> // struct rlimit, getrlimit, setrlimit, RLIMIT_FSIZE
+#endif
+
 #include "physfs.h"
 
 #include "../pntr_physfs.h"
@@ -73,6 +80,45 @@ int main() {
     FILE* file = fopen("resources/output.png", "r");
     assert(file != NULL);
     fclose(file);
+
+    // A write that stops part way through leaves a truncated file behind, so it has to be
+    // reported as a failure rather than a success. Linux shortens a write that crosses
+    // RLIMIT_FSIZE, writing the bytes that fit and reporting the short count, which is the
+    // only portable way found to induce a real short write. Other platforms refuse the
+    // whole write instead, which the failure above already covers.
+#if defined(__linux__)
+    {
+        struct rlimit originalLimit;
+        struct rlimit shortLimit;
+        char shortData[8192];
+        const unsigned int shortLength = (unsigned int)sizeof(shortData) / 2;
+
+        assert(getrlimit(RLIMIT_FSIZE, &originalLimit) == 0);
+
+        // Crossing the limit also raises SIGXFSZ, which would otherwise kill the test.
+        assert(signal(SIGXFSZ, SIG_IGN) != SIG_ERR);
+
+        shortLimit = originalLimit;
+        shortLimit.rlim_cur = (rlim_t)shortLength;
+        assert(setrlimit(RLIMIT_FSIZE, &shortLimit) == 0);
+
+        memset(shortData, 'p', sizeof(shortData));
+        pntr_set_error(PNTR_ERROR_NONE);
+        assert(pntr_save_file("short.bin", shortData, (unsigned int)sizeof(shortData)) == false);
+        assert(pntr_get_error_code() == PNTR_ERROR_FAILED_TO_WRITE);
+
+        assert(setrlimit(RLIMIT_FSIZE, &originalLimit) == 0);
+        assert(signal(SIGXFSZ, SIG_DFL) != SIG_ERR);
+
+        // Half the data did reach the disk, which is what makes this a short write rather
+        // than a write that failed outright.
+        PHYSFS_File* shortHandle = PHYSFS_openRead("res/short.bin");
+        assert(shortHandle != NULL);
+        assert(PHYSFS_fileLength(shortHandle) == (PHYSFS_sint64)shortLength);
+        assert(PHYSFS_close(shortHandle) != 0);
+        assert(PHYSFS_delete("short.bin") != 0);
+    }
+#endif
 
     assert(PHYSFS_deinit() != 0);
 
