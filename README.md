@@ -23,6 +23,9 @@ int main() {
     // Load an image from the resources.zip file.
     pntr_image* image = pntr_load_image("res/hello.png");
 
+    // Unload the image.
+    pntr_unload_image(image);
+
     // Deinitialize PhysFS
     PHYSFS_deinit();
 }

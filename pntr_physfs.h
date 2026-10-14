@@ -34,6 +34,7 @@
 #define PNTR_PHYSFS_H_
 
 #include <stdbool.h> // bool
+#include <stddef.h> // NULL, size_t
 
 #ifndef PNTR_PHYSFS_API
     #ifdef PNTR_API
@@ -87,6 +88,8 @@ PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *dat
 #ifdef PNTR_PHYSFS_IMPLEMENTATION
 #ifndef PNTR_PHYSFS_IMPLEMENTATION_ONCE
 #define PNTR_PHYSFS_IMPLEMENTATION_ONCE
+
+#include <stddef.h> // NULL, size_t
 
 #ifndef PNTR_LOAD_FILE
     #define PNTR_LOAD_FILE pntr_physfs_load_file
