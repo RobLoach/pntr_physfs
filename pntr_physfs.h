@@ -108,60 +108,76 @@ PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *dat
 extern "C" {
 #endif
 
+/**
+ * Reports a failure through pntr's error state, when pntr.h is in scope.
+ *
+ * pntr_set_error() takes a `pntr_error`, and an enum can't be forward declared portably,
+ * so failures can only be reported when pntr.h was included before this implementation.
+ * Include pntr_physfs.h for its declarations, then pntr.h, then pntr_physfs.h again with
+ * PNTR_PHYSFS_IMPLEMENTATION defined. Including it only once, before pntr.h, still works,
+ * but every failure is then silent.
+ *
+ * @see pntr_set_error()
+ */
+#ifndef PNTR_PHYSFS_SET_ERROR
+    #ifdef PNTR_H__
+        #define PNTR_PHYSFS_SET_ERROR(error) pntr_set_error(error)
+    #else
+        #define PNTR_PHYSFS_SET_ERROR(error)
+    #endif
+#endif
+
+// Only needed when pntr.h hasn't declared these already.
+#ifndef PNTR_H__
 PNTR_PHYSFS_API void pntr_unload_memory(void* pointer);
 PNTR_PHYSFS_API void* pntr_load_memory(size_t size);
+#endif
 
 PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsigned int *bytesRead) {
+    // Nothing has been read yet, so every failure below can just return.
+    if (bytesRead != NULL) {
+        *bytesRead = 0;
+    }
+
     // Open up the file.
     PHYSFS_File* handle = PHYSFS_openRead(fileName);
     if (handle == NULL) {
-        if (bytesRead != NULL) {
-            *bytesRead = 0;
-        }
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_OPEN);
         return NULL;
     }
 
-    // Check to see how large the file is.
+    // Check to see how large the file is. The file did open, so an unknown length is
+    // reported as a failure to read it rather than a failure to open it.
     PHYSFS_sint64 size = PHYSFS_fileLength(handle);
     if (size == -1) {
-        if (bytesRead != NULL) {
-            *bytesRead = 0;
-        }
         PHYSFS_close(handle);
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_READ);
         return NULL;
     }
 
-    // Close safely when it's empty.
-    if (size == 0) {
-        if (bytesRead != NULL) {
-            *bytesRead = 0;
-        }
-        PHYSFS_close(handle);
-        return NULL;
-    }
-
-    // Read the file data into a buffer.
-    void* buffer = pntr_load_memory((size_t)(size + 1));
+    // An empty file loads successfully, the same way pntr_load_file() does, leaving
+    // pntr_load_image() to report that no data can never be an image. PNTR_MALLOC(0) is
+    // implementation-defined and is allowed to return NULL, so ask for at least one byte
+    // to keep an empty file's result reliably non-NULL.
+    void* buffer = pntr_load_memory(size > 0 ? (size_t)size : 1);
     if (buffer == NULL) {
-        if (bytesRead != NULL) {
-            *bytesRead = 0;
-        }
         PHYSFS_close(handle);
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_NO_MEMORY);
         return NULL;
     }
 
+    // Read the file data into the buffer, and close the file handle.
     PHYSFS_sint64 read = PHYSFS_readBytes(handle, buffer, (PHYSFS_uint64)size);
-    if (read < 0) {
-        if (bytesRead != NULL) {
-            *bytesRead = 0;
-        }
+    PHYSFS_close(handle);
+
+    // A file that shrank since it was measured, or that stopped part way through, would
+    // leave the tail of the buffer uninitialized, so a short read is a failure.
+    if (read != size) {
         pntr_unload_memory(buffer);
-        PHYSFS_close(handle);
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_READ);
         return NULL;
     }
 
-    // Close the file handle, and return the bytes read and the buffer.
-    PHYSFS_close(handle);
     if (bytesRead != NULL) {
         *bytesRead = (unsigned int)read;
     }
@@ -172,18 +188,21 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
 PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *data, unsigned int bytesToWrite) {
     // Protect against empty writes.
     if (bytesToWrite == 0 || data == NULL) {
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_WRITE);
         return false;
     }
 
     // Open the file.
     PHYSFS_File* handle = PHYSFS_openWrite(fileName);
     if (handle == NULL) {
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_WRITE);
         return false;
     }
 
     // Write the data to the file handle.
     if (PHYSFS_writeBytes(handle, data, bytesToWrite) < 0) {
         PHYSFS_close(handle);
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_WRITE);
         return false;
     }
 
