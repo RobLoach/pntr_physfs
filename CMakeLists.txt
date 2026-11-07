@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.14)
 project(pntr_physfs
     DESCRIPTION "pntr_physfs: PhysicsFS support for pntr"
     HOMEPAGE_URL "https://github.com/robloach/pntr_physfs"
