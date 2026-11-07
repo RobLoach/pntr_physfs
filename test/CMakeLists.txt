@@ -27,4 +27,4 @@ else()
 endif()
 
 # Set up the test
-add_test(NAME pntr_physfs_test COMMAND pntr_physfs_test)
+add_test(NAME pntr_physfs_test COMMAND pntr_physfs_test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

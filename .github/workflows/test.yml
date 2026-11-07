@@ -1,0 +1,25 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: ${{ matrix.os }} (${{ matrix.config }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        config: [Debug, Release]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.config }}
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -C ${{ matrix.config }}
