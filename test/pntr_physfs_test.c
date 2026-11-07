@@ -20,7 +20,7 @@
     } \
 } while (0)
 
-int main() {
+int main(void) {
     // Initialize PhysFS
     CHECK(PHYSFS_init(0) != 0);
 
