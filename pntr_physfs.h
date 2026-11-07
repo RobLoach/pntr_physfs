@@ -44,6 +44,12 @@
     #endif
 #endif
 
+// pntr's implementation reads PNTR_LOAD_FILE and PNTR_SAVE_FILE when it is compiled, so it
+// would already be using its stdio file functions rather than PhysFS.
+#ifdef PNTR_IMPLEMENTATION_ONCE
+    #error "pntr_physfs.h must be included before pntr.h is included with PNTR_IMPLEMENTATION"
+#endif
+
 #ifndef PNTR_LOAD_FILE
     #define PNTR_LOAD_FILE pntr_physfs_load_file
 #endif
