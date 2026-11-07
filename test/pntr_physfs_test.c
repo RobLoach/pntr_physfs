@@ -34,7 +34,7 @@ int main(void) {
     // No write directory has been set yet, so the file can't be opened for writing.
     pntr_set_error(PNTR_ERROR_NO_MEMORY);
     CHECK(pntr_save_file("output.png", "pntr_physfs", 11) == false);
-    CHECK(pntr_get_error_code() == PNTR_ERROR_FAILED_TO_WRITE);
+    CHECK(pntr_get_error_code() == PNTR_ERROR_FAILED_TO_OPEN);
 
     // Set the write directory.
     CHECK(PHYSFS_setWriteDir("resources") != 0);
@@ -54,6 +54,16 @@ int main(void) {
     CHECK(emptyData != NULL);
     CHECK(emptyBytesRead == 0);
     pntr_unload_file(emptyData);
+
+    // Saving zero bytes creates an empty file, matching pntr_save_file().
+    pntr_set_error(PNTR_ERROR_NONE);
+    CHECK(pntr_save_file("empty-save.bin", "", 0) == true);
+    CHECK(pntr_get_error_code() == PNTR_ERROR_NONE);
+    unsigned int emptySaveBytesRead = 1;
+    unsigned char* emptySaveData = pntr_load_file("res/empty-save.bin", &emptySaveBytesRead);
+    CHECK(emptySaveData != NULL);
+    CHECK(emptySaveBytesRead == 0);
+    pntr_unload_file(emptySaveData);
 
     // It is pntr_load_image() that reports an empty file as a problem with the data,
     // rather than pntr_physfs reporting it as a failure to open the file.

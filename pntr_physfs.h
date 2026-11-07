@@ -192,21 +192,21 @@ PNTR_PHYSFS_API unsigned char* pntr_physfs_load_file(const char *fileName, unsig
 }
 
 PNTR_PHYSFS_API bool pntr_physfs_save_file(const char *fileName, const void *data, unsigned int bytesToWrite) {
-    // Protect against empty writes.
-    if (bytesToWrite == 0 || data == NULL) {
-        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_WRITE);
+    // Match pntr_save_file(), which rejects missing arguments even when there is nothing to write.
+    if (fileName == NULL || data == NULL) {
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_INVALID_ARGS);
         return false;
     }
 
     // Open the file.
     PHYSFS_File* handle = PHYSFS_openWrite(fileName);
     if (handle == NULL) {
-        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_WRITE);
+        PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_OPEN);
         return false;
     }
 
-    // Write the data to the file handle.
-    if (PHYSFS_writeBytes(handle, data, bytesToWrite) < 0) {
+    // Opening the file already created or truncated it, so saving zero bytes empties the file.
+    if (bytesToWrite > 0 && PHYSFS_writeBytes(handle, data, bytesToWrite) < 0) {
         PHYSFS_close(handle);
         PNTR_PHYSFS_SET_ERROR(PNTR_ERROR_FAILED_TO_WRITE);
         return false;
